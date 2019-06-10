@@ -1,3 +1,5 @@
+import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 import { Component } from '@angular/core';
 
 import { Platform } from '@ionic/angular';
@@ -15,6 +17,8 @@ export class AppComponent {
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
     public toastController: ToastController,
+    public alertController: AlertController,
+    public router: Router,
   ) {
     this.initializeApp();
   }
@@ -23,21 +27,26 @@ export class AppComponent {
     this.platform.ready().then(() => {
       this.statusBar.styleDefault();
       this.splashScreen.hide();
-      this.platform.backButton.subscribe(() => {
-        // this does work
-        this.presentToast();
-        // tslint:disable-next-line:no-string-literal
-        navigator['app'].exitApp();
+      this.platform.backButton.subscribe(async () => {
+        if (this.router.isActive('/home', true) && this.router.url === '/home') {
+          const alert = await this.alertController.create({
+            header: 'Close app?',
+            buttons: [
+              {
+                text: 'Cancel',
+                role: 'cancel'
+              }, {
+                text: 'Close',
+                handler: () => {
+                  // tslint:disable-next-line:no-string-literal
+                  navigator['app'].exitApp();
+                }
+              }
+            ]
+          });
+          await alert.present();
+        }
       });
     });
-  }
-
-  async presentToast() {
-    const toast = await this.toastController.create({
-      message: 'You are leaving... ',
-      duration: 2000,
-      position: 'middle',
-    });
-    toast.present();
   }
 }
